@@ -75,7 +75,8 @@ def main():
         # Get bounding box and create grid
         xmin, ymin, xmax, ymax = result_gdf.total_bounds
         bounding_polygon = box(xmin, ymin, xmax, ymax)
-        bounding_gdf = gpd.GeoDataFrame(geometry=[bounding_polygon], crs
+        bounding_gdf = gpd.GeoDataFrame(geometry=[bounding_polygon], crs=result_gdf.crs)
+                                        
         # ... rest of the bounding box and grid creation code ...
 
         # Spatial join and visualization
