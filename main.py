@@ -132,6 +132,68 @@ def main():
         # Display the updated dataframe
         st.write("तलको विश्लेषण तालीका excel csv को रूपमा डाउनलोड गर्नुहोस:")
         st.dataframe(result_df)
+result_df['geometry'] = result_df.apply(lambda row: Point(row['LONGITUDE'], row['LATITUDE']), axis=1)
+result_gdf = gpd.GeoDataFrame(result_df, geometry='geometry', crs='epsg:4326')
+# Get the total bounds (xmin, ymin, xmax, ymax)
+xmin, ymin, xmax, ymax = result_gdf.total_bounds
+# Create a Polygon using the bounds
+bounding_polygon = box(xmin, ymin, xmax, ymax)
+# Optionally, create a GeoDataFrame with the bounding polygon
+bounding_gdf = gpd.GeoDataFrame(geometry=[bounding_polygon], crs=result_gdf.crs)
+# Set the title of the Streamlit app
+st.title("Grid Spacing in meter for Mother Tree")
+
+# Create a number input widget for grid spacing, allowing floats
+grid_spacing = st.number_input("Enter Grid Spacing (float)", value=1.0, step=0.1, format="%.2f")
+# Assuming 'bounding_gdf' is your GeoDataFrame in 'EPSG:4326'
+
+# Define the grid spacing in meters (20 meters in this case)
+spacing_meters = grid_spacing
+
+# Get the bounds of the bounding geometry
+xmin, ymin, xmax, ymax = bounding_gdf.total_bounds
+
+# Calculate spacing in degrees based on the center of the bounding box
+center_lat = (ymin + ymax) / 2
+spacing_degrees = spacing_meters / (111320 * math.cos(math.radians(center_lat)))  # Approximate conversion
+
+# Create a list of x and y coordinates for the grid points
+x_coords = []
+current_x = xmin
+while current_x < xmax:
+    x_coords.append(current_x)
+    current_x += spacing_degrees
+
+y_coords = []
+current_y = ymin
+while current_y < ymax:
+    y_coords.append(current_y)
+    current_y += spacing_degrees
+
+# Create a list of polygons representing the grid cells
+polygons = []
+for x in x_coords:
+    for y in y_coords:
+        polygons.append(Polygon([(x, y), (x + spacing_degrees, y),
+                                 (x + spacing_degrees, y + spacing_degrees), (x, y + spacing_degrees)]))
+
+# Create a GeoDataFrame from the polygons
+grid_gdf = gpd.GeoDataFrame({'geometry': polygons}, crs='EPSG:4326')
+
+# (Optional) Clip the grid to the bounding geometry
+grid_gdf = gpd.clip(grid_gdf, bounding_gdf)
+# Ensure both GeoDataFrames have the same CRS (Coordinate Reference System)
+if grid_gdf.crs != result_gdf.crs:
+    result_gdf = result_gdf.to_crs(grid_gdf.crs)
+
+# Perform a spatial join to find intersecting polygons, but keep only the grid cell index
+intersected_grid_indices = gpd.sjoin(grid_gdf, result_gdf, how='inner', predicate='intersects').index.unique()
+
+# Select the unique grid cells from grid_gdf based on the indices
+selected_polygons_gdf = grid_gdf[grid_gdf.index.isin(intersected_grid_indices)].reset_index(drop=True)
+
+# Display the entered grid spacing
+st.write(f"Grid Spacing: {grid_spacing}")
 
 if __name__ == "__main__":
     main()
