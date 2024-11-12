@@ -28,6 +28,8 @@ def main():
         'height_m': [25, 25, 25, 25, 21, 27, 30, 28, 23, 21, 15, 16, 15, 26, 28, 26, 24, 18, 26, 15, 16, 29, 30, 22],
         'class': [2, 2, 2, 2, 2, 1, 1, 3, 4, 1, 2, 2, 4, 1, 1, 3, 1, 1, 3, 3, 1, 2, 3, 4]
     }
+    # Display the entered grid spacing
+st.write(f"Grid Spacing: {grid_spacing}")
 
     # Convert to DataFrame
     tdf = pd.DataFrame(tdata)
@@ -192,8 +194,7 @@ intersected_grid_indices = gpd.sjoin(grid_gdf, result_gdf, how='inner', predicat
 # Select the unique grid cells from grid_gdf based on the indices
 selected_polygons_gdf = grid_gdf[grid_gdf.index.isin(intersected_grid_indices)].reset_index(drop=True)
 
-# Display the entered grid spacing
-st.write(f"Grid Spacing: {grid_spacing}")
+
 
 if __name__ == "__main__":
     main()
