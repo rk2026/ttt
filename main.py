@@ -32,7 +32,7 @@ def main():
     st.write(f"Grid Spacing: {grid_spacing}")
 
     # Convert to DataFrame
-    tdf = pd.DataFrame(tdata)
+tdf = pd.DataFrame(tdata)
 
     # Display the DataFrame in Streamlit
     st.write("यो टेम्पेलट डाटा डाउनलोड गरी यही अनुसार हुनेगरी डाटा तयार गर्नुहोस, कृपया यस टेवलको कोलम हेडिङ्को नाम परिवर्तन नगर्नुहोस।(Download this template to fill the data. Do not alter the column heading name)")
